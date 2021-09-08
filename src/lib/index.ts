@@ -61,14 +61,14 @@ export interface ActionContextOptions<TData, TState = any> {
   onCancel?: () => void;
 }
 
-export interface AsyncStore<TState> extends Omit<Store<TState>, "dispatch"> {
+export interface AsyncStore<TState> {
   dispatch: Dispatcher<TState>;
 }
 
 export function createStore<TState = any>(
   reducer: Reducer<TState, AnyAction> = defaultReducer as any,
   ...args: any[]
-): AsyncStore<TState> {
+): AsyncStore<TState> & Store<TState> {
   const dynamicReducers = new Set<ActionReducer>();
   const store: Store<TState> = reduxCreateStore((state, action) => {
     if (dynamicReducers.size) {
