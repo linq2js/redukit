@@ -1,0 +1,38 @@
+{
+  "name": "redukit",
+  "version": "2.1.5",
+  "description": "A redux kit that supports async action and many more",
+  "main": "./lib/index.js",
+  "types": "./lib/idnex.d.ts",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "npm run build",
+    "pub:patch": "npm version patch && npm publish",
+    "pub:minor": "npm version minor && npm publish",
+    "pub:major": "npm version major && npm publish"
+  },
+  "keywords": [
+    "functional",
+    "redux",
+    "react",
+    "redux-react",
+    "flux",
+    "state",
+    "state-management",
+    "store"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "4.4.2",
+    "@types/node": "16.7.13",
+    "redux": "4.1.1"
+  }
+}

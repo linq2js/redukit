@@ -1,0 +1,15 @@
+{
+  "include": ["./src"],
+  "exclude": ["node_modules/*"],
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2017"],
+    "strict": true,
+    "outDir": "./",
+    "declaration": true,
+    "rootDir": "./src",
+    "esModuleInterop": false,
+    "module": "commonjs",
+    "jsx": "react-jsx"
+  }
+}
