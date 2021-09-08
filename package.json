@@ -15,7 +15,7 @@
   "scripts": {
     "build": "tsc",
     "prepublish": "npm run build",
-    "git:push": "git add package.json && git commit -m \"release-published\" && git push origin",
+    "git:push": "git push origin",
     "pub:patch": "npm version patch && npm publish && npm run git:push",
     "pub:minor": "npm version minor && npm publish && npm run git:push",
     "pub:major": "npm version major && npm publish && npm run git:push"
