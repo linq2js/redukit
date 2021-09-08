@@ -1,6 +1,6 @@
 {
   "name": "redukit",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "description": "A redux kit that supports async action and many more",
   "main": "./lib/index.js",
   "types": "./lib/idnex.d.ts",
