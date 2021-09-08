@@ -1,9 +1,14 @@
-import { Action, createStore as reduxCreateStore, Reducer } from "redux";
+import {
+  AnyAction,
+  createStore as reduxCreateStore,
+  Reducer,
+  Store,
+} from "redux";
 
 const forever = new Promise(() => {});
 const defaultReducer = (state = {}) => state;
 
-export interface ActionContext<TResult = any, TData = any> {
+export interface ActionContext<TResult = any, TState = any, TData = any> {
   prev?: ActionContext;
   cancel(): void;
   cancelPrevious(): void;
@@ -15,11 +20,8 @@ export interface ActionContext<TResult = any, TData = any> {
   error?: Error;
   chain<T = any>(funcs: Function[]): CancellablePromise<T>;
   forever: Promise<any>;
-}
-
-export interface StoreContext<TState> {
-  getState(): TState;
   dispatch: Dispatcher<TState>;
+  getState(): TState;
 }
 
 export interface AsyncAction<TResult = any, TState = any> {
@@ -32,36 +34,35 @@ export interface AsyncAction<TResult = any, TState = any> {
   type?: string | string[];
   key?: any;
   reducer?: ActionReducer<TState>;
-  action: (
-    storeContext: StoreContext<TState>,
-    actionContext: ActionContext
-  ) => TResult;
+  action: (actionContext: ActionContext<TResult, TState>) => TResult;
 }
 
 export type Dispatcher<TState> = (
-  action: Action | string | AsyncAction<any, TState>
+  action: AnyAction | string | AsyncAction<any, TState>
 ) => TState;
 
 export type CancellablePromise<T = any> = Promise<T> & { cancel(): void };
 
 export type ActionReducer<T = any> = Reducer<T> | { [key: string]: Reducer };
 
-export type ActionHandler = (action: Action) => void;
+export type ActionHandler = (action: AnyAction) => void;
 
 export type RegisterActionListener = (handler: ActionHandler) => Function;
 
-export interface ActionContextOptions<TData> {
+export interface ActionContextOptions<TData, TState = any> {
   on: RegisterActionListener;
   data?: TData;
+  getState(): TState;
+  dispatch: Dispatcher<TState>;
   onCancel?: () => void;
 }
 
-export function createStore<TState = any, TAction extends Action = Action>(
-  reducer: Reducer<TState, TAction> = defaultReducer as any,
-  ...args: any[]
-) {
+export function createStore<
+  TState = any,
+  TAction extends AnyAction = AnyAction
+>(reducer: Reducer<TState, TAction> = defaultReducer as any, ...args: any[]) {
   const dynamicReducers = new Set<ActionReducer>();
-  const store = reduxCreateStore((state, action) => {
+  const store: Store<TState> = reduxCreateStore((state, action) => {
     if (dynamicReducers.size) {
       dynamicReducers.forEach((dynamicReducer) => {
         state = reduce(state, dynamicReducer, action);
@@ -74,7 +75,9 @@ export function createStore<TState = any, TAction extends Action = Action>(
   const contextDictionary = new Map<any, ActionContext>();
   const actionHandlers = new Set<ActionHandler>();
 
-  const dispatch = (action: any): any => {
+  const dispatch = (
+    action: AsyncAction<any, TState> | AnyAction | string
+  ): any => {
     if (typeof action === "string") {
       action = { type: action };
     } else if (typeof action === "function") {
@@ -82,13 +85,14 @@ export function createStore<TState = any, TAction extends Action = Action>(
     }
 
     if (typeof action.action !== "function") {
-      actionHandlers.forEach((handler) => handler(action));
-      return originalDispatch(action);
+      actionHandlers.forEach((handler) => handler(action as AnyAction));
+      return originalDispatch(action as AnyAction);
     }
 
     return dispatchAsyncAction(
-      action,
-      { dispatch, getState: store.getState },
+      action as AsyncAction<TState>,
+      store.getState,
+      dispatch,
       contextDictionary,
       actionHandlers,
       dynamicReducers
@@ -113,20 +117,28 @@ function dispatchAsyncAction<TState>(
     key = type,
     reducer,
   }: AsyncAction<any, TState>,
-  { getState, dispatch }: StoreContext<TState>,
+  getState: () => TState,
+  dispatch: Dispatcher<TState>,
   contextDictionary: Map<any, ActionContext>,
-  globalHandlers: Set<(action: Action) => void>,
+  globalHandlers: Set<(action: AnyAction) => void>,
   globalReducers: Set<ActionReducer>
 ) {
-  let wrappedHandler: (action: Action) => void;
+  let wrappedHandler: (action: AnyAction) => void;
   let disposed = false;
   const handlers = new Set<Function>();
   const context = createActionContext({
     data,
+    getState,
+    dispatch: ((action: AsyncAction) => {
+      if (context.cancelled()) {
+        throw new Error("context:cancelled");
+      }
+      return dispatch(action);
+    }) as any,
     on(handler) {
       handlers.add(handler);
       if (!wrappedHandler) {
-        wrappedHandler = (action: Action) => {
+        wrappedHandler = (action: AnyAction) => {
           handlers.forEach((handler) => handler(action));
         };
         globalHandlers.add(wrappedHandler);
@@ -177,18 +189,7 @@ function dispatchAsyncAction<TState>(
     dispatchAll(dispatch, type, "", { payload });
     const ms = debounce || delay || 0;
     const actionWrapper = ms ? createDebouncedAction(action, ms) : action;
-    const result = actionWrapper(
-      {
-        getState,
-        dispatch: ((action: AsyncAction) => {
-          if (context.cancelled()) {
-            throw new Error("context:cancelled");
-          }
-          return dispatch(action);
-        }) as any,
-      },
-      context
-    );
+    const result = actionWrapper(context);
     isAsync = result && typeof result.then === "function";
     // async action
     if (isAsync) {
@@ -258,7 +259,7 @@ function dispatchAll(
 export function reduce<TState>(
   state: TState,
   reducer: ActionReducer,
-  action: Action
+  action: AnyAction
 ) {
   if (!reducer) return state;
   if (typeof reducer === "function") {
@@ -283,12 +284,20 @@ export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function createActionContext<TResult = any, TData = any>(
-  { data = {} as TData, on, onCancel }: ActionContextOptions<TData> = {} as any
+export function createActionContext<TResult = any, TState = any, TData = any>(
+  {
+    data = {} as TData,
+    on,
+    onCancel,
+    getState,
+    dispatch,
+  }: ActionContextOptions<TData> = {} as any
 ) {
   let cancelled = false;
-  const context: ActionContext<TResult, TData> = {
+  const context: ActionContext<TResult, TState, TData> = {
     data,
+    getState,
+    dispatch,
     cancelled() {
       return cancelled;
     },
@@ -338,12 +347,9 @@ function createDebouncedAction<TState>(
   action: AsyncAction["action"],
   ms: number
 ) {
-  return async (
-    storeContext: StoreContext<TState>,
-    actionContext: ActionContext
-  ) => {
+  return async (actionContext: ActionContext<any, TState>) => {
     await delay(ms);
     if (actionContext.cancelled()) return;
-    return action(storeContext, actionContext);
+    return action(actionContext);
   };
 }

@@ -122,15 +122,16 @@ const Delay = (ms) => () => new Promise((resolve) => setTimeout(resolve, ms));
 
 const Search = () => ({
   type: "search",
-  action: async ({ dispatch, getState }, actionContext) => {
+  action: async (context) => {
+    const { dispatch, getState, cancelPrevious, on, cancel } = context;
     // cancel previous execution if any
     // avoid dispatching search action many times
-    actionContext.cancelPrevious();
-    actionContext.on((action) => {
+    cancelPrevious();
+    on((action) => {
       // if user clicks on cancel button
       if (action.type === "cancelSearch") {
         // cancel execution
-        actionContext.cancel();
+        cancel();
       }
     });
     // delay searching progress in 300ms
