@@ -37,9 +37,13 @@ export interface AsyncAction<TResult = any, TState = any> {
   action: (actionContext: ActionContext<TResult, TState>) => TResult;
 }
 
-export type Dispatcher<TState> = (
-  action: AnyAction | string | AsyncAction<any, TState>
-) => TState;
+export type SupportedAction<TState> =
+  | AnyAction
+  | string
+  | AsyncAction<any, TState>
+  | ((context: ActionContext<TState>) => any);
+
+export type Dispatcher<TState> = (action: SupportedAction<TState>) => TState;
 
 export type CancellablePromise<T = any> = Promise<T> & { cancel(): void };
 
@@ -57,10 +61,14 @@ export interface ActionContextOptions<TData, TState = any> {
   onCancel?: () => void;
 }
 
-export function createStore<
-  TState = any,
-  TAction extends AnyAction = AnyAction
->(reducer: Reducer<TState, TAction> = defaultReducer as any, ...args: any[]) {
+export interface AsyncStore<TState> extends Omit<Store<TState>, "dispatch"> {
+  dispatch: Dispatcher<TState>;
+}
+
+export function createStore<TState = any>(
+  reducer: Reducer<TState, AnyAction> = defaultReducer as any,
+  ...args: any[]
+): AsyncStore<TState> {
   const dynamicReducers = new Set<ActionReducer>();
   const store: Store<TState> = reduxCreateStore((state, action) => {
     if (dynamicReducers.size) {
@@ -75,9 +83,7 @@ export function createStore<
   const contextDictionary = new Map<any, ActionContext>();
   const actionHandlers = new Set<ActionHandler>();
 
-  const dispatch = (
-    action: AsyncAction<any, TState> | AnyAction | string
-  ): any => {
+  const dispatch = (action: SupportedAction<TState>): any => {
     if (typeof action === "string") {
       action = { type: action };
     } else if (typeof action === "function") {
@@ -99,9 +105,7 @@ export function createStore<
     );
   };
 
-  store.dispatch = dispatch;
-
-  return store;
+  return Object.assign(store, { dispatch });
 }
 
 function dispatchAsyncAction<TState>(
