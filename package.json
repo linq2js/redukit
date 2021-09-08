@@ -15,9 +15,10 @@
   "scripts": {
     "build": "tsc",
     "prepublish": "npm run build",
-    "pub:patch": "npm version patch && npm publish",
-    "pub:minor": "npm version minor && npm publish",
-    "pub:major": "npm version major && npm publish"
+    "push": "git add package.json && git commit -m \"release-published\" && git push origin",
+    "pub:patch": "npm version patch && npm publish && npm run push",
+    "pub:minor": "npm version minor && npm publish && npm run push",
+    "pub:major": "npm version major && npm publish && npm run push"
   },
   "keywords": [
     "functional",
