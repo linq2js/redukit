@@ -3,7 +3,7 @@
   "version": "2.2.1",
   "description": "A redux kit that supports async action and many more",
   "main": "./lib/index.js",
-  "types": "./lib/idnex.d.ts",
+  "types": "./lib/index.d.ts",
   "license": "MIT",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
