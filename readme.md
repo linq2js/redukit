@@ -16,7 +16,7 @@ npm i redukit --save
 yarn add redukit
 ```
 
-## Peerdependencies
+## Peer Dependencies
 
 - redux
 

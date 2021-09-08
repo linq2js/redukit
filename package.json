@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "jest",
     "prepublish": "npm run build",
     "postpublish": "git push origin --tags",
     "pub:patch": "npm version patch && npm publish",
@@ -32,8 +33,11 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "typescript": "4.4.2",
+    "@types/jest": "^27.0.1",
     "@types/node": "16.7.13",
-    "redux": "4.1.1"
+    "jest": "^27.1.1",
+    "redux": "4.1.1",
+    "ts-jest": "^27.0.5",
+    "typescript": "4.4.2"
   }
 }

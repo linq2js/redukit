@@ -1,8 +1,8 @@
 {
   "include": ["./src"],
-  "exclude": ["node_modules/*"],
+  "exclude": ["node_modules/*", "**/*.test.ts"],
   "compilerOptions": {
-    "types": ["node"],
+    "types": ["node", "@types/jest"],
     "lib": ["ES2017"],
     "strict": true,
     "outDir": "./",
@@ -10,6 +10,6 @@
     "rootDir": "./src",
     "esModuleInterop": false,
     "module": "commonjs",
-    "jsx": "react-jsx"
+    "jsx": "preserve"
   }
 }
