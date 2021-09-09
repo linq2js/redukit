@@ -152,7 +152,7 @@ export default function useAction<TPayload, TResult>(
 
   useEffect(() => {
     if (!lazy) {
-      ref.current.start();
+      ref.current.methods.start();
     }
   }, [key, lazy]);
 
