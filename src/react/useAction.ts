@@ -70,6 +70,7 @@ export default function useAction<TPayload, TResult>(
       const reducer = loadableReducer(actionType, {
         prop: ref.current.key,
         resultAsData: ref.current.resultAsData,
+        data: ref.current?.data,
       });
 
       ref.current.dispatch({
@@ -108,27 +109,30 @@ export default function useAction<TPayload, TResult>(
     };
 
     ref.current = {
-      start(payload = ref.current.payload) {
-        executeAction(ref.current.creator, payload, false);
-      },
-      restart(payload = ref.current.payload) {
-        executeAction(ref.current.creator, payload, true);
-      },
-      update(data: ((prev: any) => any) | any) {
-        if (typeof data === "function") {
-          // not started yet
-          if (ref.current.loadable?.pending) return;
-          data = data(ref.current.loadable.data);
-        }
-        update(ref.current.key, data);
-      },
-      dispose(key: string) {
-        return update(key, undefined);
+      methods: {
+        start(payload = ref.current.payload) {
+          executeAction(ref.current.creator, payload, false);
+        },
+        restart(payload = ref.current.payload) {
+          executeAction(ref.current.creator, payload, true);
+        },
+        update(data: ((prev: any) => any) | any) {
+          if (typeof data === "function") {
+            // not started yet
+            if (ref.current.loadable?.pending) return;
+            data = data(ref.current.loadable.data);
+          }
+          update(ref.current.key, data);
+        },
+        dispose(key: string) {
+          return update(key, undefined);
+        },
       },
     };
   }
 
   Object.assign(ref.current, {
+    data,
     key,
     payload,
     creator,
@@ -153,7 +157,7 @@ export default function useAction<TPayload, TResult>(
   }, [key, lazy]);
 
   return {
-    ...ref.current,
+    ...ref.current.methods,
     ...loadable,
   };
 }
