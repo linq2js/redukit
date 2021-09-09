@@ -1,14 +1,14 @@
 {
   "include": ["./src"],
-  "exclude": ["node_modules/*", "**/*.test.ts"],
+  "exclude": ["node_modules/*", "**/*.test.*"],
   "compilerOptions": {
     "types": ["node", "@types/jest"],
-    "lib": ["ES2017"],
+    "esModuleInterop": false,
+    "lib": ["dom", "es2015"],
     "strict": true,
     "outDir": "./",
     "declaration": true,
     "rootDir": "./src",
-    "esModuleInterop": false,
     "module": "commonjs",
     "jsx": "preserve"
   }

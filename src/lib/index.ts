@@ -272,7 +272,7 @@ export function reduce<TState>(
   let nextState: any = state;
   Object.entries(reducer).forEach(([prop, propReducer]) => {
     const prevSubState = nextState[prop];
-    const nextSubState = propReducer(prevSubState, action);
+    const nextSubState = reduce(prevSubState, propReducer, action);
 
     if (nextSubState !== prevSubState) {
       if (nextState === state) {
