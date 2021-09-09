@@ -1,9 +1,16 @@
 /node_modules
 /lib
+
 /react/*.js
 /react/*.ts
 /react/*.tsx
-/es/**/*.ts
-/es/**/*.tsx
+
+/utils/*.js
+/utils/*.ts
+/utils/*.tsx
+
+
+/es/**/*.d.ts
+/es/**/*.jsx
 /es/**/*.js
 
