@@ -5,11 +5,12 @@ export interface Options {
   resultAsData?: boolean;
   innerReducer?: Reducer<any>;
   prop?: string;
+  data?: any;
 }
 
 export default function loadableReducer<T = any>(
   actionType: string,
-  { resultAsData = true, innerReducer, prop }: Options = {}
+  { resultAsData = true, innerReducer, prop, data }: Options = {}
 ) {
   const defaultState = {
     loading: false,
@@ -25,6 +26,7 @@ export default function loadableReducer<T = any>(
     switch (action.type) {
       case `${actionType}:loading`:
         nextState = {
+          data,
           ...prevState,
           loading: true,
           error: undefined,
