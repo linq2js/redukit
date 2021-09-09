@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./es",
+    "module": "ES6",
+    "target": "ES6",
+    "moduleResolution": "Node",
+    "forceConsistentCasingInFileNames": true
+  }
+}

@@ -3,6 +3,7 @@
   "version": "2.3.1",
   "description": "A redux kit that supports async action and many more",
   "main": "./lib/index.js",
+  "module": "./es/index.js",
   "types": "./lib/index.d.ts",
   "license": "MIT",
   "publishConfig": {
@@ -12,12 +13,14 @@
     "lib",
     "dist",
     "react",
-    "utils"
+    "utils",
+    "es"
   ],
   "scripts": {
     "build": "tsc",
+    "build:es": "tsc -p tsconfig.es.json",
     "test": "jest",
-    "prepublish": "npm test && npm run build",
+    "prepublish": "npm test && npm run build && npm run build:es",
     "postpublish": "git push origin --tags",
     "pub:patch": "npm version patch && npm publish",
     "pub:minor": "npm version minor && npm publish",
