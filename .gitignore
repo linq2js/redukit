@@ -2,12 +2,12 @@
 /lib
 
 /react/*.js
-/react/*.ts
-/react/*.tsx
+/react/*.d.ts
+/react/*.jsx
 
 /utils/*.js
-/utils/*.ts
-/utils/*.tsx
+/utils/*.d.ts
+/utils/*.jsx
 
 
 /es/**/*.d.ts
