@@ -20,6 +20,8 @@ export type ActionResultInfer<T> = T extends Promise<infer TResolved>
 export type UseActionResult<TData, TPayload> = {
   start(payload?: TPayload): void;
   restart(payload?: TPayload): void;
+  update(data: TData): void;
+  update(reducer: (data: TData) => TData): void;
 } & Loadable<TData>;
 
 export default function useAction<TPayload, TResult>(
@@ -59,6 +61,7 @@ export default function useAction<TPayload, TResult>(
       let actionType: string | undefined = Array.isArray(asyncAction.type)
         ? asyncAction.type[0]
         : asyncAction.type;
+
       if (!actionType) {
         actionType = Math.random().toString(36).substr(2);
         asyncAction.type = actionType;
@@ -81,6 +84,29 @@ export default function useAction<TPayload, TResult>(
       });
     };
 
+    const update = (key: string, value: undefined) => {
+      const disposeActionType = Math.random().toString().substr(2);
+      ref.current.dispatch({
+        type: disposeActionType,
+        action: () => {},
+        reducer: (state: any, action: AnyAction) => {
+          if (action.type === disposeActionType) {
+            const { [key]: removed, ...theRest } = state;
+            if (typeof value !== "undefined") {
+              theRest[key] = {
+                loading: false,
+                pending: false,
+                error: undefined,
+                data: value,
+              };
+            }
+            return theRest;
+          }
+          return state;
+        },
+      });
+    };
+
     ref.current = {
       start(payload = ref.current.payload) {
         executeAction(ref.current.creator, payload, false);
@@ -88,19 +114,16 @@ export default function useAction<TPayload, TResult>(
       restart(payload = ref.current.payload) {
         executeAction(ref.current.creator, payload, true);
       },
+      update(data: ((prev: any) => any) | any) {
+        if (typeof data === "function") {
+          // not started yet
+          if (ref.current.loadable?.pending) return;
+          data = data(ref.current.loadable.data);
+        }
+        update(ref.current.key, data);
+      },
       dispose(key: string) {
-        const disposeActionType = Math.random().toString().substr(2);
-        ref.current.dispatch({
-          type: disposeActionType,
-          action: () => {},
-          reducer: (state: any, action: AnyAction) => {
-            if (action.type === disposeActionType) {
-              const { [key]: removed, ...theRest } = state;
-              return theRest;
-            }
-            return state;
-          },
-        });
+        return update(key, undefined);
       },
     };
   }
