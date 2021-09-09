@@ -15,8 +15,6 @@ export default function loadableReducer<T = any>(
   const defaultState = {
     loading: false,
     pending: true,
-    data: undefined,
-    error: undefined,
   };
 
   return (state: any, action: AnyAction): Loadable<T> => {
